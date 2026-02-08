@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	jwt "github.com/andrskhrchk/myapp/pkg/jwt"
@@ -26,7 +28,8 @@ func NewAuthService(userRepo postgres.UserRepository, jwtMgr *jwt.TokenManager) 
 }
 
 func (s *AuthService) Register(ctx context.Context, regData *dto.RegisterDTO) (*domain.User, string, error) {
-	if _, err := s.userRepo.GetUserByEmail(ctx, regData.Email); err != nil {
+	if _, err := s.userRepo.GetUserByEmail(ctx, regData.Email); err == nil {
+		log.Println(err)
 		return nil, "", fmt.Errorf("user already exists")
 	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(regData.Password), bcrypt.DefaultCost)
@@ -52,5 +55,25 @@ func (s *AuthService) Register(ctx context.Context, regData *dto.RegisterDTO) (*
 		return nil, "", err
 	}
 
+	return user, token, nil
+}
+
+func (s *AuthService) Login(ctx context.Context, loginData *dto.LoginDTO) (*domain.User, string, error) {
+	user, err := s.userRepo.GetUserByEmail(ctx, loginData.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, "", fmt.Errorf("Invalid credentials")
+		}
+		return nil, "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(loginData.Password)); err != nil {
+		return nil, "", fmt.Errorf("invalid credentials")
+	}
+
+	token, err := s.jwtMgr.CreateToken(int64(user.ID), 24*time.Hour)
+	if err != nil {
+		return nil, "", err
+	}
 	return user, token, nil
 }
