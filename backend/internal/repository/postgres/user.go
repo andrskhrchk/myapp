@@ -67,3 +67,14 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id int) (*domain.User,
 
 	return user, nil
 }
+
+func (r *UserRepository) DeleteUser(ctx context.Context, user *domain.User) error {
+	query := `
+	DELETE FROM users
+	WHERE id = $1
+	`
+
+	_, err := r.db.ExecContext(ctx, query, user.ID)
+
+	return err
+}
