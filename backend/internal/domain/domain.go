@@ -28,9 +28,22 @@ type ProductImage struct {
 }
 
 type Order struct {
-	ID         int     `json:"id"`
-	CustomerId int     `json:"customer_id"`
-	ProdID     int     `json:"prod_id"`
-	Qty        int     `json:"qty"`
-	TotPrice   float32 `json:"tot_price"`
+	ID         int       `json:"id"`
+	CustomerId int       `json:"customer_id"`
+	TotalPrice float64   `json:"total_price"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
+type OrderItem struct {
+	ID        int     `json:"id"`
+	OrderID   int     `json:"order_id"`
+	ProductID int     `json:"product_id"`
+	Quantity  int     `json:"quantity"`
+	Price     float64 `json:"price"`
+}
+
+type OrderWithItems struct {
+	Order
+	Items []OrderItem `json:"items"`
 }

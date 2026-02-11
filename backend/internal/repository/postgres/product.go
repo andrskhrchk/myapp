@@ -8,10 +8,6 @@ import (
 	"github.com/andrskhrchk/myapp/internal/domain"
 )
 
-var (
-	ErrProdNotFound = errors.New("user not found")
-)
-
 type ProductRepository struct {
 	db *sql.DB
 }
